@@ -9537,6 +9537,7 @@ hematometra
 hematuri
 hembak
 hembalang
+hembus
 hemeralopi
 hemi-
 hemikordat
@@ -18785,6 +18786,7 @@ nadim
 nadir
 naf
 nafar
+nafas
 nafi
 nafiri
 nafkah

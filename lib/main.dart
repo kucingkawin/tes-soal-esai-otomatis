@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:tessoal/model/soal.dart';
 import 'package:tessoal/tes.dart';
 
+import 'login.dart';
+import 'menu_utama.dart';
 import 'model/rabin_karp.dart';
 import 'model/stemming/kamus/kamus.dart';
 import 'model/stemming/stemmer/stemmer.dart';
@@ -28,7 +29,17 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: TesPage(),
+      home: LoginPage(),
+      onGenerateRoute: (RouteSettings settings) {
+        if(settings.name == LoginPage.route)
+          return MaterialPageRoute(builder: (context) => LoginPage());
+        else if(settings.name == MenuUtamaPage.route)
+          return MaterialPageRoute(builder: (context) => MenuUtamaPage());
+        else if(settings.name == TesPage.route)
+          return MaterialPageRoute(builder: (context) => TesPage());
+        else
+          return null;
+      },
     );
   }
 }

@@ -26,6 +26,7 @@ class Prefix implements Affix {
         keyword = keyword.substring(2);
       }
     }
+
     if (!this.kamus.contains(keyword)) {
       // Pengahapuskan kata awalan me-, te-, be-
       if (keyword.startsWith("me")) {
@@ -62,8 +63,10 @@ class Prefix implements Affix {
           }
         }
       } else if (keyword.startsWith("be")) {
-        if (regExpFlex.setPattern("er").hasMatch(keyword.substring(3, 5))) {
-          keyword = keyword.substring(2);
+        if (regExpFlex.setPattern("er").hasMatch(keyword.substring(1, 3))) {
+          print("Masuk ber- ($keyword)");
+          keyword = keyword.substring(3);
+          print("Menjadi: ($keyword)");
         } else if (kamus.contains(keyword.substring(2))) {
           keyword = keyword.substring(2);
         } else {
@@ -72,8 +75,8 @@ class Prefix implements Affix {
       }
     }
     /*
-         * Pengahapuskan kata awalan pe-
-         */
+     * Pengahapuskan kata awalan pe-
+     */
     if (!this.kamus.contains(keyword)) {
       if (keyword.startsWith("pe")) {
         if (kamus.contains(keyword.substring(2))) {
@@ -100,6 +103,7 @@ class Prefix implements Affix {
 
       }
     }
+
     return keyword;
   }
 

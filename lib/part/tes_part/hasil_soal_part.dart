@@ -1,10 +1,9 @@
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:tessoal/model/soal.dart';
+import 'package:tessoal/model/pelajaran.dart';
 
-import '../custom_button.dart';
-import '../tes.dart';
+import '../../custom_button.dart';
+import '../../tes.dart';
 
 class HasilSoalPart extends StatefulWidget
 {
@@ -118,7 +117,7 @@ class HasilSoalPartState extends State<HasilSoalPart> {
                                           fontWeight: FontWeight.bold
                                         )
                                       ),
-                                      Text(soal.jawabanBenar),
+                                      Text(soal.kunciJawaban[0].jawabanBenar),
                                       SizedBox(height: 13.0),
                                       Text("Bobot Nilai",
                                         style: TextStyle(

@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import '../model/soal.dart';
-import '../custom_button.dart';
-import '../tes.dart';
+import 'package:tessoal/model/pelajaran.dart';
+import '../../custom_button.dart';
+import '../../tes.dart';
 
 class NomorSoalPart extends StatefulWidget
 {
@@ -43,9 +43,9 @@ class NomorSoalPartState extends State<NomorSoalPart>
                   warna: Colors.grey,
                   warnaTeks: Colors.white,
                   teks: "Selesai",
-                  onTap: (){
+                  onTap: () async {
                     TesPageState state = widget.tesPageState;
-                    state.koreksiSoal();
+                    await state.koreksiSoal();
                     state.setState((){
                       state.indeksHalaman += 1;
                     });

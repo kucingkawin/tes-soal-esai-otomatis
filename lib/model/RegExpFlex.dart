@@ -4,7 +4,7 @@ class RegExpFlex {
 
   RegExp setPattern(String pattern) {
     _regExp = RegExp(
-      r"^WS{1,2}:\/\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:56789",
+      pattern,
       caseSensitive: false,
       multiLine: false,
     );

@@ -1,61 +1,96 @@
-import 'package:tessoal/model/soal.dart';
+import 'package:tessoal/model/pelajaran.dart';
+import 'package:tessoal/model/stemming/stemmer/stemmer.dart';
 
 class RabinKarp
 {
-  static final List<String> daftarKataPenghubung = <String>[
-    'adalah', 'ialah', 'dan', 'atau', 'serta', 'bahwa', 'bahwasannya', 'meliputi'
-  ];
-
-  static void koreksiSoal(Soal soal)
+  static void koreksiSoal(Soal soal, Stemmer stemmer)
   {
-    //Tahap tokenizing
+    print("");
+
+    //Tahap tokenizing jawaban.
     List<String> tokenJawaban = _tahapTokenizing(soal.jawaban);
-    List<String> tokenJawabanBenar = _tahapTokenizing(soal.jawabanBenar);
     print("Token jawaban: ${tokenJawaban}");
-    print("Token jawaban benar: ${tokenJawabanBenar}");
 
-    //Tahap penyatuan token
-    String modifiedJawaban = _tokenKeString(tokenJawaban);
-    String modifiedJawabanBenar = _tokenKeString(tokenJawabanBenar);
-    print("Modified jawaban: ${modifiedJawaban}");
-    print("Modified jawaban benar: ${modifiedJawabanBenar}");
+    //Tahap stemming jawaban
+    _tahapStemming(tokenJawaban, stemmer);
+    print("Token jawaban stemming: ${tokenJawaban}");
 
-    //Parse k-gram 4, kemudian diubah langsung ke hash
-    List<int> hashJawaban = _parseKgramHash(modifiedJawaban, 4);
-    List<int> hashJawabanBenar = _parseKgramHash(modifiedJawabanBenar, 4);
-    print("Hash jawaban: ${hashJawaban}");
-    print("Hash jawaban benar: ${hashJawabanBenar}");
+    //Persentase kesamaan terbesar
+    List<Object> persentaseKesamaanTerbesar = <Object>[
+      0, 0.0
+    ];
 
-    //Fingerprint hash
-    List<int> fingerprintHashJawaban = _fingerprintHash(hashJawaban);
-    List<int> fingerprintHashJawabanBenar = _fingerprintHash(hashJawabanBenar);
-    print("Fingerprint jawaban: ${fingerprintHashJawaban}");
-    print("Fingerprint jawaban benar: ${fingerprintHashJawabanBenar}");
+    for(int i = 0; i < soal.kunciJawaban.length; i++) {
+      KunciJawaban kunciJawaban = soal.kunciJawaban[i];
 
-    //Komparasi hash
-    List<int> hashSama = _komparasiHash(fingerprintHashJawaban, fingerprintHashJawabanBenar);
-    print("Hash Sama: ${hashSama}");
+      //Tahap tokenizing jawaban benar.
+      List<String> tokenJawabanBenar = _tahapTokenizing(kunciJawaban.jawabanBenar);
+      print("Token jawaban benar: ${tokenJawabanBenar}");
 
-    //Penghitungan bobot
-    soal.bobotHasil = soal.bobot * ((2 * hashSama.length) / (fingerprintHashJawaban.length + fingerprintHashJawabanBenar.length));
+      //Tahap jawaban benar, dan kata kunci
+      _tahapStemming(tokenJawabanBenar, stemmer);
+      _tahapStemming(kunciJawaban.kataKunci, stemmer);
+      print("Token jawaban benar stemming: ${tokenJawabanBenar}");
+      print("Token kata kunci stemming: ${kunciJawaban.kataKunci}");
+
+      //Tahap filtering jawaban dan kunci jawaban berdasarkan kata kunci
+      List<String> tokenJawabanFilter = _tahapFiltering(tokenJawaban, kunciJawaban.kataKunci);
+      List<String> tokenJawabanBenarFilter = _tahapFiltering(tokenJawabanBenar, kunciJawaban.kataKunci);
+      print("Token jawaban filter: ${tokenJawabanFilter}");
+      print("Token jawaban benar filter: ${tokenJawabanBenarFilter}");
+
+      //Tahap penyatuan token
+      String modifiedJawaban = _tokenKeString(tokenJawabanFilter);
+      String modifiedJawabanBenar = _tokenKeString(tokenJawabanBenarFilter);
+      print("Modified jawaban: ${modifiedJawaban}");
+      print("Modified jawaban benar: ${modifiedJawabanBenar}");
+
+      //Parse k-gram 4, kemudian diubah langsung ke hash
+      List<int> hashJawaban = _parseKgramHash(modifiedJawaban, soal.kGram);
+      List<int> hashJawabanBenar = _parseKgramHash(modifiedJawabanBenar, soal.kGram);
+      print("Hash jawaban: ${hashJawaban}");
+      print("Hash jawaban benar: ${hashJawabanBenar}");
+
+      //Fingerprint hash
+      List<int> fingerprintHashJawaban = _fingerprintHash(hashJawaban);
+      List<int> fingerprintHashJawabanBenar = _fingerprintHash(hashJawabanBenar);
+      print("Fingerprint jawaban: ${fingerprintHashJawaban}");
+      print("Fingerprint jawaban benar: ${fingerprintHashJawabanBenar}");
+
+      //Komparasi hash
+      List<int> hashSama = _komparasiHash(fingerprintHashJawaban, fingerprintHashJawabanBenar);
+      print("Hash Sama: ${hashSama}");
+
+      //Persentase kesamaan
+      double persentaseKesamaan = 100 * ((2 * hashSama.length) / (fingerprintHashJawaban.length + fingerprintHashJawabanBenar.length));
+      print("Persentase Kesamaan: $persentaseKesamaan");
+      if (persentaseKesamaan > persentaseKesamaanTerbesar[1]) {
+        persentaseKesamaanTerbesar[1] = persentaseKesamaan;
+        persentaseKesamaanTerbesar[0] = i;
+      }
+
+      print("------");
+    }
+
+    soal.bobotHasil = soal.bobot * persentaseKesamaanTerbesar[1] / 100;
     print("Bobot hasil: ${soal.bobotHasil}");
   }
 
-  static List<String> _tahapTokenizing(String soal)
+  static List<String> _tahapTokenizing(String teks)
   {
     List<String> hasil = List<String>();
     int langkah = 1;
     String sementara = "";
-    for(int i = 0; i < soal.length; i++)
+    for(int i = 0; i < teks.length; i++)
     {
       bool tambahKata = false;
-      String huruf = soal[i].toLowerCase();
+      String huruf = teks[i].toLowerCase();
       if(langkah == 1)
       {
         if(_cekAdalahHuruf(huruf))
         {
           sementara += huruf;
-          if(i == soal.length - 1)
+          if(i == teks.length - 1)
             tambahKata = true;
         }
         else
@@ -71,7 +106,7 @@ class RabinKarp
           sementara += huruf;
           langkah = 1;
 
-          if(i == soal.length - 1)
+          if(i == teks.length - 1)
             tambahKata = true;
         }
       }
@@ -80,6 +115,36 @@ class RabinKarp
       {
         hasil.add(sementara);
         sementara = "";
+      }
+    }
+
+    return hasil;
+  }
+
+  static void _tahapStemming(List<String> token, Stemmer stemmer) {
+    for(int i = 0; i < token.length; i++) {
+      String tokenLowercase = token[i].toLowerCase();
+      token[i] = stemmer.getRootWord2(tokenLowercase, tokenLowercase);
+    }
+  }
+
+  static List<String> _tahapFiltering(List<String> token, List<String> kataKunci) {
+    List<String> hasil = List<String>();
+    for (int i = 0; i < token.length; i++) {
+      for (int j = 0; j < kataKunci.length; j++) {
+        if (token[i] == kataKunci[j]) {
+          if (hasil.length > 0) {
+            for (int k = 0; k < hasil.length; k++) {
+              if (token[i] == hasil[k]) {
+                break;
+              } else if (k == hasil.length - 1) {
+                hasil.add(token[i]);
+              }
+            }
+          } else {
+            hasil.add(token[i]);
+          }
+        }
       }
     }
 
