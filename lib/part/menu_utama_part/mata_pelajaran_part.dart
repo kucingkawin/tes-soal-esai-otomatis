@@ -1,3 +1,4 @@
+import 'package:backendless_sdk/backendless_sdk.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:tessoal/model/pelajaran.dart';
@@ -17,10 +18,19 @@ class MataPelajaranPart extends StatefulWidget
 
 class MataPelajaranPartState extends State<MataPelajaranPart> {
 
-  int indeksHalaman;
+  Future<BackendlessUser> backendlessUser;
+  String emailUser, namaUser;
 
-  MataPelajaranPartState() {
-    indeksHalaman = 0;
+  @override
+  void initState() {
+    // Tidak ada
+    namaUser = "(Belum ada)";
+    backendlessUser = Backendless.userService.currentUser();
+    backendlessUser.then((value) {
+      setState((){
+        emailUser = value.email;
+      });
+    });
   }
 
   Widget cardDaftarPelajaran(String nomor, MataPelajaran mataPelajaran) {
@@ -35,6 +45,7 @@ class MataPelajaranPartState extends State<MataPelajaranPart> {
               widget.menuUtamaPageState.setState(() {
                 widget.menuUtamaPageState.mataPelajaranDipilih = mataPelajaran;
                 widget.menuUtamaPageState.indeksHalaman += 1;
+                widget.menuUtamaPageState.loadChapter(mataPelajaran);
               });
             },
             child: Padding(
@@ -82,6 +93,23 @@ class MataPelajaranPartState extends State<MataPelajaranPart> {
   @override
   Widget build(BuildContext context) {
     List<MataPelajaran> daftarMataPelajaran = widget.menuUtamaPageState.dummyData.daftarMataPelajaran;
+    return FutureBuilder(
+      future: widget.menuUtamaPageState.futureDaftarMataPelajaran,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(
+            child: Text("Lagi loading ya...")
+          );
+        } else if (snapshot.connectionState == ConnectionState.done){
+          return widgetMataPelajaran(snapshot.data);
+        } else {
+          return Container();
+        }
+      },
+    );
+  }
+
+  Widget widgetMataPelajaran(List<MataPelajaran> daftarMataPelajaran) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -93,12 +121,12 @@ class MataPelajaranPartState extends State<MataPelajaranPart> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Text(
-                "Fransiskus Xaverius Ananda Tri Prasetio",
+                "$emailUser",
                 style: TextStyle(
                   fontSize: 20.0
                 ),
               ),
-              Text("Nomor Absen: 12")
+              Text("Selamat datang di tes soal.")
             ]
           )
         ),

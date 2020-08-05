@@ -23,12 +23,24 @@ class MenuUtamaPageState extends State<MenuUtamaPage>
   Chapter chapterDipilih;
   int indeksHalaman;
 
-  MenuUtamaPageState() {
-    print("Inisialisasi menu utama");
+  Future<List<MataPelajaran>> futureDaftarMataPelajaran;
+  Future<List<Chapter>> futureDaftarChapter;
+
+  @override
+  void initState() {
     dummyData = DummyData();
     mataPelajaranDipilih = null;
     chapterDipilih = null;
     indeksHalaman = 0;
+    loadMataPelajaran();
+  }
+
+  void loadMataPelajaran() {
+    futureDaftarMataPelajaran = MataPelajaran.loadMataPelajaran();
+  }
+
+  void loadChapter(MataPelajaran mataPelajaran) {
+    futureDaftarChapter = Chapter.loadChapter(mataPelajaran);
   }
 
   @override

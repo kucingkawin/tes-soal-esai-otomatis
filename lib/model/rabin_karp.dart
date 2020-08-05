@@ -7,6 +7,9 @@ class RabinKarp
   {
     print("");
 
+    print(soal.soal);
+    print("Jawaban siswa: ${soal.jawaban}");
+
     //Tahap tokenizing jawaban.
     List<String> tokenJawaban = _tahapTokenizing(soal.jawaban);
     print("Token jawaban: ${tokenJawaban}");
@@ -24,6 +27,7 @@ class RabinKarp
       KunciJawaban kunciJawaban = soal.kunciJawaban[i];
 
       //Tahap tokenizing jawaban benar.
+      print("Kunci Jawaban ${i + 1}: ${kunciJawaban.jawabanBenar}");
       List<String> tokenJawabanBenar = _tahapTokenizing(kunciJawaban.jawabanBenar);
       print("Token jawaban benar: ${tokenJawabanBenar}");
 

@@ -11,7 +11,9 @@ class TesPage extends StatefulWidget
 {
   static String route = "tes";
 
-  TesPage({Key key}) : super(key: key);
+  final Chapter chapter;
+
+  TesPage({Key key, this.chapter}) : super(key: key);
 
   @override
   TesPageState createState() {
@@ -22,13 +24,15 @@ class TesPage extends StatefulWidget
 class TesPageState extends State<TesPage>
 {
   int indeksHalaman;
+  Future<List<Soal>> _futureDaftarSoal;
   List<Soal> daftarSoal;
   int indeksSoalSekarang;
   TextEditingController controllerJawaban = TextEditingController();
   DummyData dummyData;
   double nilaiAkhir;
 
-  TesPageState() {
+  @override
+  void initState() {
     inisialisasi();
   }
 
@@ -38,11 +42,32 @@ class TesPageState extends State<TesPage>
     indeksSoalSekarang = 0;
     nilaiAkhir = 0;
     dummyData = DummyData();
-    daftarSoal = dummyData.daftarSoal;
+    _futureDaftarSoal = Soal.loadSoal(widget.chapter);
+    //daftarSoal = dummyData.daftarSoal;
   }
 
   @override
   Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: _futureDaftarSoal,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Scaffold(
+            body: Center(
+              child: Text("Lagi loading ya...")
+            )
+          );
+        } else if (snapshot.connectionState == ConnectionState.done){
+          daftarSoal = snapshot.data; //dummyData.daftarSoal;
+          return _widgetTest();
+        } else {
+          return Container();
+        }
+      }
+    );
+  }
+
+  Widget _widgetTest() {
     return Scaffold(
       appBar: AppBar(
         title: Text('Tes Soal'),

@@ -1,5 +1,7 @@
+import 'package:backendless_sdk/backendless_sdk.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'menu_utama.dart';
 
@@ -21,6 +23,11 @@ class LoginPageState extends State<LoginPage> {
   TextEditingController _controllerEmail = TextEditingController();
   TextEditingController _controllerPassword = TextEditingController();
 
+  @override
+  void initState() {
+
+  }
+  
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -82,12 +89,13 @@ class LoginPageState extends State<LoginPage> {
                     borderRadius: BorderRadius.circular(32.0)
                 ),
                 onPressed: () async {
-                  if (_controllerEmail.text == 'nandaprasesoft98@gmail.com' && _controllerPassword.text == '1234567890')
+                  try {
+                    BackendlessUser user = await login(_controllerEmail.text, _controllerPassword.text);
                     Navigator.of(context).pushReplacementNamed(MenuUtamaPage.route);
-                  else {
+                  } on PlatformException catch (e) {
                     AlertDialog alertDialog = AlertDialog(
                       title: Text('Kesalahan'),
-                      content: Text('Email dan password tidak terdaftar.'),
+                      content: Text(e.message),
                       actions: <Widget>[
                         FlatButton(
                           child: Text('Baiklah'),
@@ -109,5 +117,13 @@ class LoginPageState extends State<LoginPage> {
         )
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
+  }
+
+  Future<BackendlessUser> login(String email, String password) async {
+    try {
+      return await Backendless.userService.login(email, password, true);
+    } on Exception catch (e) {
+      throw e;
+    }
   }
 }

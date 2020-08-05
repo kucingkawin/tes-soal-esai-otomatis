@@ -1,9 +1,34 @@
+import 'dart:convert';
+
+import 'package:backendless_sdk/backendless_sdk.dart';
+import 'package:flutter/services.dart';
+
 class MataPelajaran {
   String id;
   String nama;
   String deskripsi;
 
   MataPelajaran({this.id, this.nama, this.deskripsi});
+
+  static Future<List<MataPelajaran>> loadMataPelajaran() async {
+    try {
+      List<Map<dynamic, dynamic>> daftarMataPelajaran = await Backendless.data.of("mata_pelajaran").find();
+      List<MataPelajaran> hasil = List<MataPelajaran>();
+      daftarMataPelajaran.forEach((element) {
+        MataPelajaran mataPelajaran = MataPelajaran(
+          id: element["objectId"],
+          nama: element["nama"],
+          deskripsi: element["deskripsi"]
+        );
+        hasil.add(mataPelajaran);
+      });
+
+      print(daftarMataPelajaran);
+      return hasil;
+    } on PlatformException catch (e) {
+      throw e;
+    }
+  }
 }
 
 class Chapter {
@@ -13,6 +38,30 @@ class Chapter {
   String deskripsi;
 
   Chapter({this.id, this.mataPelajaran, this.nama, this.deskripsi});
+
+  static Future<List<Chapter>> loadChapter(MataPelajaran mataPelajaran) async {
+    try {
+      print("Id matpel: ${mataPelajaran.id}");
+      DataQueryBuilder queryBuilder = DataQueryBuilder();
+      queryBuilder.whereClause = "mata_pelajaran.objectId = '${mataPelajaran.id}'";
+      queryBuilder.related = ["mata_pelajaran"];
+      List<Map<dynamic, dynamic>> daftarChapter = await Backendless.data.of("chapter").find(queryBuilder);
+      List<Chapter> hasil = List<Chapter>();
+      daftarChapter.forEach((element) {
+        Chapter chapter = Chapter(
+            id: element["objectId"],
+            nama: element["nama"],
+            deskripsi: element["deskripsi"]
+        );
+        hasil.add(chapter);
+      });
+
+      print("Hasil query: " + daftarChapter.toString());
+      return hasil;
+    } on PlatformException catch (e) {
+      throw e;
+    }
+  }
 }
 
 class KunciJawaban {
@@ -33,6 +82,57 @@ class Soal
   double bobotHasil;
 
   Soal({this.chapter, this.soal, this.jawaban = "", this.kunciJawaban, this.bobot, this.bobotHasil = 0, this.kGram = 4});
+
+  static Future<List<Soal>> loadSoal(Chapter chapter) async {
+    try {
+      print("Chapter: ${chapter.id}");
+      DataQueryBuilder queryBuilder = DataQueryBuilder();
+      queryBuilder.whereClause = "chapter.objectId = '${chapter.id}'";
+      queryBuilder.related = ["chapter"];
+      List<Map<dynamic, dynamic>> daftarSoal = await Backendless.data.of("soal").find(queryBuilder);
+      List<Soal> hasil = List<Soal>();
+      for(int i = 0; i < daftarSoal.length; i++) {
+        // Kunci Jawaban
+        Map<dynamic, dynamic> element = daftarSoal[i];
+        queryBuilder = DataQueryBuilder();
+        queryBuilder.whereClause = "soal.objectId = '${element["objectId"]}'";
+        queryBuilder.related = ["soal"];
+        List<Map<dynamic, dynamic>> daftarKunciJawaban = await Backendless.data.of("kunci_jawaban").find(queryBuilder);
+        List<KunciJawaban> hasilKunciJawaban = List<KunciJawaban>();
+        daftarKunciJawaban.forEach((element2) {
+          //print("Tipe: " + element2["kata_kunci"]["rawJsonString"] + " (" + element2["kata_kunci"]["rawJsonString"].runtimeType.toString() + ")");
+          //print("Tipe data decode: " + jsonDecode(element2["kata_kunci"]["rawJsonString"]).runtimeType.toString());
+          List<dynamic> daftarKataKunciSementara = jsonDecode(element2["kata_kunci"]["rawJsonString"]);
+          List<String> hasilDaftarKataKunciSementara = List<String>();
+          daftarKataKunciSementara.forEach((element) {
+            hasilDaftarKataKunciSementara.add(element);
+          });
+          print(hasilDaftarKataKunciSementara);
+          hasilKunciJawaban.add(
+            KunciJawaban(
+              jawabanBenar: element2["jawaban_benar"],
+              kataKunci: hasilDaftarKataKunciSementara
+            )
+          );
+        });
+        int bobot = element["bobot"];
+        Soal soal = Soal(
+          chapter: chapter,
+          soal: element["soal"],
+          bobot: bobot.roundToDouble(),
+          kGram: element["k_gram"],
+          kunciJawaban: hasilKunciJawaban
+        );
+        print("Soal: " + element["soal"]);
+        hasil.add(soal);
+      }
+
+      print("Banyak soal: ${hasil.length}");
+      return hasil;
+    } on PlatformException catch (e) {
+      throw e;
+    }
+  }
 }
 
 class DummyData {

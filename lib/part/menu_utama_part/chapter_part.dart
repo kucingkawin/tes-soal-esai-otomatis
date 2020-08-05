@@ -1,3 +1,4 @@
+import 'package:backendless_sdk/backendless_sdk.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:tessoal/model/pelajaran.dart';
@@ -18,10 +19,9 @@ class ChapterPart extends StatefulWidget
 
 class ChapterPartState extends State<ChapterPart> {
 
-  int indeksHalaman;
-
-  ChapterPartState() {
-    indeksHalaman = 0;
+  @override
+  void initState() {
+    // Tidak ada
   }
 
   Widget cardChapter(String nomor, Chapter chapter) {
@@ -33,7 +33,7 @@ class ChapterPartState extends State<ChapterPart> {
         child: Material(
           child: InkWell(
             onTap: (){
-              Navigator.of(context).pushNamed(TesPage.route);
+              Navigator.of(context).pushNamed(TesPage.route, arguments: chapter);
             },
             child: Padding(
               padding: EdgeInsets.all(16.0),
@@ -80,7 +80,23 @@ class ChapterPartState extends State<ChapterPart> {
   @override
   Widget build(BuildContext context) {
     MataPelajaran mataPelajaranDipilih = widget.menuUtamaPageState.mataPelajaranDipilih;
-    List<Chapter> daftarChapter = widget.menuUtamaPageState.dummyData.daftarChapter;
+    return FutureBuilder(
+      future: widget.menuUtamaPageState.futureDaftarChapter,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(
+            child: Text("Lagi loading ya...")
+          );
+        } else if (snapshot.connectionState == ConnectionState.done){
+          return widgetChapter(mataPelajaranDipilih, snapshot.data);
+        } else {
+          return Container();
+        }
+      },
+    );
+  }
+
+  Widget widgetChapter(MataPelajaran mataPelajaranDipilih, List<Chapter> daftarChapter) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -96,7 +112,7 @@ class ChapterPartState extends State<ChapterPart> {
                   Text(
                     "${mataPelajaranDipilih.nama}",
                     style: TextStyle(
-                        fontSize: 20.0
+                      fontSize: 20.0
                     ),
                   ),
                   Text("${mataPelajaranDipilih.deskripsi}")
@@ -105,7 +121,7 @@ class ChapterPartState extends State<ChapterPart> {
                 daftarKolom.add(Text(
                   "Tidak ada yang ditampilkan",
                   style: TextStyle(
-                      fontSize: 20.0
+                    fontSize: 20.0
                   ),
                 ));
               }

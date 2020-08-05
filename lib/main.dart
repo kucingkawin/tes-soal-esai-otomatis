@@ -1,17 +1,29 @@
+import 'package:backendless_sdk/backendless_sdk.dart';
 import 'package:flutter/material.dart';
 import 'package:tessoal/tes.dart';
 
 import 'login.dart';
 import 'menu_utama.dart';
-import 'model/rabin_karp.dart';
-import 'model/stemming/kamus/kamus.dart';
-import 'model/stemming/stemmer/stemmer.dart';
 
 void main() {
-  runApp(MyApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  Backendless.initApp("769B6C66-BEB2-E3DD-FF85-A50448820600", "B57957B1-98E5-4CE2-9EE4-EC22628B8A41", "AA5F9E8D-5AF2-4947-858A-5439F7246BD4");
+  dapatkanUserLogin().then((value) {
+    runApp(MyApp(user: value));
+  });
+}
+
+Future<BackendlessUser> dapatkanUserLogin() async {
+  BackendlessUser user = await Backendless.userService.currentUser();
+  print("Current user: $user");
 }
 
 class MyApp extends StatelessWidget {
+
+  BackendlessUser user;
+
+  MyApp({this.user});
+
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -29,14 +41,14 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: LoginPage(),
+      home: user == null ? LoginPage() : MenuUtamaPage(),
       onGenerateRoute: (RouteSettings settings) {
         if(settings.name == LoginPage.route)
           return MaterialPageRoute(builder: (context) => LoginPage());
         else if(settings.name == MenuUtamaPage.route)
           return MaterialPageRoute(builder: (context) => MenuUtamaPage());
         else if(settings.name == TesPage.route)
-          return MaterialPageRoute(builder: (context) => TesPage());
+          return MaterialPageRoute(builder: (context) => TesPage(chapter: settings.arguments));
         else
           return null;
       },
